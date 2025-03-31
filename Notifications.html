@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1b2431 0%, #1b2431 100%);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.5s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
+        }
+
+        .dashboard {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 0;
+            background: rgba(25, 32, 38, 0.95);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: expand 0.6s ease-out;
+        }
+
+        @keyframes expand {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .light-mode .dashboard {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .sidebar {
+            grid-row: 1 / 4;
+            background: rgba(35, 45, 53, 0.9);
+            padding: 40px 32px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            backdrop-filter: blur(12px);
+            color: #e0e0e0;
+        }
+
+        .light-mode .sidebar {
+            background: rgba(245, 247, 250, 0.9);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            color: #1a1a1a;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(25, 32, 38, 0.9);
+            backdrop-filter: blur(12px);
+            position: relative;
+        }
+
+        .light-mode .header {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        #backButton {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .light-mode #backButton {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1a1a1a;
+        }
+
+        #backButton:hover {
+            background: rgba(0, 123, 255, 0.2);
+            color: #66b0ff;
+            transform: translateX(-4px);
+        }
+
+        .light-mode #backButton:hover {
+            color: #007bff;
+        }
+
+        #backButton::before {
+            content: '←';
+            font-size: 18px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.8px;
+            margin-left: 20px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .light-mode .header h1 {
+            color: #1a1a1a;
+        }
+
+        #darkModeToggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode #darkModeToggle {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        #darkModeToggle:hover {
+            transform: rotate(360deg);
+            background: rgba(0, 123, 255, 0.2);
+        }
+
+        .totals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .total-card {
+            background: linear-gradient(145deg, #2a3439 0%, #3e4b53 100%);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .light-mode .total-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .total-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 123, 255, 0.15) 0%, transparent 60%);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .total-card:hover::before {
+            opacity: 1;
+        }
+
+        .total-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .total-card span {
+            display: block;
+            font-size: 32px;
+            font-weight: 800;
+            color: #66b0ff;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode .total-card span {
+            color: #007bff;
+        }
+
+        .total-card small {
+            font-size: 14px;
+            color: #adb5bd;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .light-mode .total-card small {
+            color: #6c757d;
+        }
+
+        .category-list {
+            list-style: none;
+            flex: 1;
+        }
+
+        .category-list li {
+            padding: 16px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 500;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .light-mode .category-list li {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .category-list li:hover {
+            background: rgba(0, 123, 255, 0.15);
+            transform: translateX(8px);
+        }
+
+        .category-list li.active {
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .category-list li::before {
+            content: '▹';
+            font-size: 12px;
+            color: #66b0ff;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode .category-list li::before {
+            color: #007bff;
+        }
+
+        .category-list li.active::before {
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .main-content {
+            grid-row: 2 / 4;
+            padding: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #notifications-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 12px;
+        }
+
+        #notifications-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #notifications-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        .light-mode #notifications-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .notification-card {
+            background: linear-gradient(145deg, #2a3439 0%, #3e4b53 100%);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light-mode .notification-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .notification-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, #007bff, #00c4ff);
+            transition: width 0.3s ease;
+        }
+
+        .notification-card:hover::before {
+            width: 12px;
+        }
+
+        .notification-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-card strong {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .light-mode .notification-card strong {
+            color: #1a1a1a;
+        }
+
+        .notification-card small {
+            color: #adb5bd;
+            font-size: 14px;
+            display: block;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        .light-mode .notification-card small {
+            color: #6c757d;
+        }
+
+        .notification-card button {
+            background: rgba(255, 68, 68, 0.1);
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .notification-card button:hover {
+            background: #ff4444;
+            color: white;
+            transform: scale(1.15);
+        }
+
+        #clearAll {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, #dc3545 0%, #ff5766 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 32px;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        #clearAll:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.5);
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="totals-grid">
+                <div class="total-card" data-category="All">
+                    <span id="total-all">0</span>
+                    <small>All</small>
+                </div>
+                <div class="total-card" data-category="Security">
+                    <span id="total-security">0</span>
+                    <small>Security</small>
+                </div>
+                <div class="total-card" data-category="Emails">
+                    <span id="total-emails">0</span>
+                    <small>Emails</small>
+                </div>
+                <div class="total-card" data-category="Transactions">
+                    <span id="total-transactions">0</span>
+                    <small>Transactions</small>
+                </div>
+            </div>
+
+            <ul class="category-list">
+                <li class="active" data-category="All">All Notifications</li>
+                <li data-category="Job Alerts">Job Alerts</li>
+                <li data-category="Emails">Emails</li>
+                <li data-category="Transactions">Transactions</li>
+            </ul>
+
+            <button id="darkModeToggle">☀️</button>
+        </div>
+
+        <div class="header">
+            <a href="index.html" id="backButton">Back</a>
+            <h1>Notifications Center</h1>
+        </div>
+
+        <div class="main-content">
+            <div id="notifications-container"></div>
+        </div>
+
+        <button id="clearAll">Clear All Notifications</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const notifications = [
+                { id: 1, type: "Team Unstop", message: "Apple is actively hiring in India for 100+ diverse roles across Software, AI, Marketing, Design, Sales, and more.", category: "Job Alerts" },
+                { id: 2, type: "Amazon Web Sevices", message: "Registration now open: AWS re:Inforce 2025", category: "Job Alerts" },
+                { id: 3, type: "Important Mail", message: "Your invoice for March is ready", category: "Emails" },
+                { id: 4, type: "Transaction Alert", message: "₹550 debited from your account", category: "Transactions" },
+                { id: 5, type: "Job Application", message: "Job status update from ABC Corp", category: "Emails" },
+                { id: 6, type: "Electricity Bill", message: "Electricity bill paid: ₹1200", category: "Transactions" },
+                { id: 7, type: "LinkedIn", message: "You choose to let recruiters know you’re open to work", category: "Job Alerts" },
+
+            ];
+
+            const notificationsContainer = document.getElementById("notifications-container");
+            const clearAllBtn = document.getElementById("clearAll");
+            const categoryItems = document.querySelectorAll(".category-list li");
+            const darkModeToggle = document.getElementById("darkModeToggle");
+            const totalCards = {
+                all: document.getElementById("total-all"),
+                security: document.getElementById("total-security"),
+                emails: document.getElementById("total-emails"),
+                transactions: document.getElementById("total-transactions")
+            };
+            let isLightMode = false;
+
+            function updateTotals() {
+                totalCards.all.textContent = notifications.length;
+                totalCards.security.textContent = notifications.filter(n => n.category === "Job Alerts").length;
+                totalCards.emails.textContent = notifications.filter(n => n.category === "Emails").length;
+                totalCards.transactions.textContent = notifications.filter(n => n.category === "Transactions").length;
+            }
+
+            function renderNotifications(filter = "All") {
+                notificationsContainer.innerHTML = "";
+
+                const filteredNotifications = notifications.filter(
+                    (notif) => filter === "All" || notif.category === filter
+                );
+
+                if (filteredNotifications.length === 0) {
+                    notificationsContainer.innerHTML = "<p style='text-align: center; color: #adb5bd; font-size: 18px; padding: 20px;'>No notifications available</p>";
+                    return;
+                }
+
+                filteredNotifications.forEach((notif) => {
+                    const notifCard = document.createElement("div");
+                    notifCard.classList.add("notification-card");
+                    notifCard.innerHTML = `
+                        <div class="notification-content">
+                            <strong>${notif.type}</strong>
+                            <small>${notif.message}</small>
+                        </div>
+                        <button onclick="deleteNotification(${notif.id})">×</button>
+                    `;
+                    notificationsContainer.appendChild(notifCard);
+                });
+            }
+
+            window.deleteNotification = function (id) {
+                const index = notifications.findIndex((notif) => notif.id === id);
+                if (index !== -1) {
+                    notifications.splice(index, 1);
+                    const activeCategory = document.querySelector(".category-list li.active").dataset.category;
+                    updateTotals();
+                    renderNotifications(activeCategory);
+                }
+            };
+
+            clearAllBtn.addEventListener("click", () => {
+                notifications.length = 0;
+                updateTotals();
+                renderNotifications();
+            });
+
+            categoryItems.forEach((item) => {
+                item.addEventListener("click", function () {
+                    document.querySelector(".category-list li.active").classList.remove("active");
+                    this.classList.add("active");
+                    renderNotifications(this.dataset.category);
+                });
+            });
+
+            darkModeToggle.addEventListener("click", () => {
+                document.body.classList.toggle("light-mode");
+                isLightMode = !isLightMode;
+                darkModeToggle.textContent = isLightMode ? "🌙" : "☀️";
+            });
+
+            updateTotals();
+            renderNotifications();
+        });
+    </script>
+</body>
+</html>
