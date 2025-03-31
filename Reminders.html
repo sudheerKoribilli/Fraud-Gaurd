@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reminders Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #12171b 0%, #232d35 100%);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.5s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
+        }
+
+        .dashboard {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 0;
+            background: rgba(25, 32, 38, 0.95);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: expand 0.6s ease-out;
+        }
+
+        @keyframes expand {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .light-mode .dashboard {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .sidebar {
+            grid-row: 1 / 4;
+            background: rgba(35, 45, 53, 0.9);
+            padding: 40px 32px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            backdrop-filter: blur(12px);
+            color: #e0e0e0;
+        }
+
+        .light-mode .sidebar {
+            background: rgba(245, 247, 250, 0.9);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            color: #1a1a1a;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(25, 32, 38, 0.9);
+            backdrop-filter: blur(12px);
+            position: relative;
+        }
+
+        .light-mode .header {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        #backButton {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .light-mode #backButton {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1a1a1a;
+        }
+
+        #backButton:hover {
+            background: rgba(0, 123, 255, 0.2);
+            color: #66b0ff;
+            transform: translateX(-4px);
+        }
+
+        .light-mode #backButton:hover {
+            color: #007bff;
+        }
+
+        #backButton::before {
+            content: '←';
+            font-size: 18px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.8px;
+            margin-left: 20px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .light-mode .header h1 {
+            color: #1a1a1a;
+        }
+
+        #darkModeToggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode #darkModeToggle {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        #darkModeToggle:hover {
+            transform: rotate(360deg);
+            background: rgba(0, 123, 255, 0.2);
+        }
+
+        .totals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .total-card {
+            background: linear-gradient(145deg, #2a3439 0%, #3e4b53 100%);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .light-mode .total-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .total-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 123, 255, 0.15) 0%, transparent 60%);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .total-card:hover::before {
+            opacity: 1;
+        }
+
+        .total-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .total-card span {
+            display: block;
+            font-size: 32px;
+            font-weight: 800;
+            color: #66b0ff;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode .total-card span {
+            color: #007bff;
+        }
+
+        .total-card small {
+            font-size: 14px;
+            color: #adb5bd;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .light-mode .total-card small {
+            color: #6c757d;
+        }
+
+        .category-list {
+            list-style: none;
+            flex: 1;
+        }
+
+        .category-list li {
+            padding: 16px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 500;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .light-mode .category-list li {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .category-list li:hover {
+            background: rgba(0, 123, 255, 0.15);
+            transform: translateX(8px);
+        }
+
+        .category-list li.active {
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .category-list li::before {
+            content: '▹';
+            font-size: 12px;
+            color: #66b0ff;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode .category-list li::before {
+            color: #007bff;
+        }
+
+        .category-list li.active::before {
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .main-content {
+            grid-row: 2 / 4;
+            padding: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #reminders-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 12px;
+        }
+
+        #reminders-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #reminders-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        .light-mode #reminders-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .reminder-card {
+            background: linear-gradient(145deg, #2a3439 0%, #3e4b53 100%);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light-mode .reminder-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .reminder-card.pending::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, #ffcc00, #ff9900);
+            transition: width 0.3s ease;
+        }
+
+        .reminder-card.completed::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, #28a745, #5cd47e);
+            transition: width 0.3s ease;
+        }
+
+        .reminder-card:hover::before {
+            width: 12px;
+        }
+
+        .reminder-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .reminder-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .reminder-card strong {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .light-mode .reminder-card strong {
+            color: #1a1a1a;
+        }
+
+        .reminder-card .details {
+            color: #adb5bd;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .light-mode .reminder-card .details {
+            color: #6c757d;
+        }
+
+        .reminder-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .reminder-actions button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode .reminder-actions button {
+            background: rgba(0, 0, 0, 0.1);
+            color: #1a1a1a;
+        }
+
+        .reminder-actions .mark-complete:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .reminder-actions .dismiss:hover {
+            background: #ff4444;
+            color: white;
+        }
+
+        #clearAll {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, #dc3545 0%, #ff5766 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 32px;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        #clearAll:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.5);
+        }
+
+        #addReminder {
+            position: absolute;
+            bottom: 80px;
+            right: 32px;
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        #addReminder:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6);
+        }
+
+        #reminderModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #2a3439 0%, #3e4b53 100%);
+            padding: 24px;
+            border-radius: 16px;
+            width: 400px;
+            color: #e0e0e0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .light-mode .modal-content {
+            background: linear-gradient(145deg, #ffffff 0%, #f5f7fa 100%);
+            color: #1a1a1a;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin: 12px 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .modal-content input,
+        .modal-content select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .light-mode .modal-content input,
+        .light-mode .modal-content select {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.05);
+            color: #1a1a1a;
+        }
+
+        .modal-content input:focus,
+        .modal-content select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+        }
+
+        .modal-content #saveReminder {
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+
+        .modal-content #saveReminder:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        .modal-content #closeModal {
+            background: linear-gradient(90deg, #dc3545 0%, #ff5766 100%);
+            color: white;
+        }
+
+        .modal-content #closeModal:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="totals-grid">
+                <div class="total-card" data-category="All">
+                    <span id="total-all">0</span>
+                    <small>All</small>
+                </div>
+                <div class="total-card" data-category="Personal">
+                    <span id="total-personal">0</span>
+                    <small>Personal</small>
+                </div>
+                <div class="total-card" data-category="Finance">
+                    <span id="total-finance">0</span>
+                    <small>Finance</small>
+                </div>
+            </div>
+
+            <ul class="category-list">
+                <li class="active" data-category="All">All Reminders</li>
+                <li data-category="Personal">Personal</li>
+                <li data-category="Finance">Finance</li>
+            </ul>
+
+            <button id="darkModeToggle">☀️</button>
+        </div>
+
+        <div class="header">
+            <a href="index.html" id="backButton">Back</a>
+            <h1>Reminders Center</h1>
+        </div>
+
+        <div class="main-content">
+            <div id="reminders-container"></div>
+            <button id="addReminder">+ Add Reminder</button>
+        </div>
+
+        <button id="clearAll">Clear All Reminders</button>
+    </div>
+
+    <div id="reminderModal">
+        <div class="modal-content">
+            <h2>Add New Reminder</h2>
+            <form id="reminderForm">
+                <label>Type: <input type="text" id="reminderType" required></label>
+                <label>Message: <input type="text" id="reminderMessage" required></label>
+                <label>Date: <input type="date" id="reminderDate" required></label>
+                <label>Category: 
+                    <select id="reminderCategory">
+                        <option value="Personal">Personal</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                </label>
+                <button type="submit" id="saveReminder">Save</button>
+                <button type="button" id="closeModal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const reminders = [
+                { id: 1, type: "College Review", message: "Review meeting at college", date: "2025-04-03", category: "Personal", completed: false },
+                { id: 2, type: "Payment Due", message: "Next month AC EMI", date: "2025-04-04", category: "Finance", completed: false },
+                { id: 3, type: "Personal Task", message: "Call dentist for appointment", date: "2025-04-05", category: "Personal", completed: true },
+                { id: 4, type: "Finance Task", message: "Pay electricity bill", date: "2025-04-07", category: "Finance", completed: false },
+                { id: 5, type: "Personal Task", message: "Pick up groceries", date: "2025-04-02", category: "Personal", completed: false }
+            ];
+
+            const remindersContainer = document.getElementById("reminders-container");
+            const clearAllBtn = document.getElementById("clearAll");
+            const categoryItems = document.querySelectorAll(".category-list li");
+            const darkModeToggle = document.getElementById("darkModeToggle");
+            const addReminderBtn = document.getElementById("addReminder");
+            const reminderModal = document.getElementById("reminderModal");
+            const reminderForm = document.getElementById("reminderForm");
+            const closeModalBtn = document.getElementById("closeModal");
+            const totalCards = {
+                all: document.getElementById("total-all"),
+                personal: document.getElementById("total-personal"),
+                finance: document.getElementById("total-finance")
+            };
+            let isLightMode = false;
+
+            function updateTotals() {
+                totalCards.all.textContent = reminders.length;
+                totalCards.personal.textContent = reminders.filter(r => r.category === "Personal").length;
+                totalCards.finance.textContent = reminders.filter(r => r.category === "Finance").length;
+            }
+
+            function renderReminders(filter = "All") {
+                remindersContainer.innerHTML = "";
+
+                const filteredReminders = reminders.filter(
+                    (reminder) => filter === "All" || reminder.category === filter
+                );
+
+                if (filteredReminders.length === 0) {
+                    remindersContainer.innerHTML = "<p style='text-align: center; color: #adb5bd; font-size: 18px; padding: 20px;'>No reminders available</p>";
+                    return;
+                }
+
+                filteredReminders.forEach((reminder) => {
+                    const reminderCard = document.createElement("div");
+                    reminderCard.classList.add("reminder-card");
+                    reminderCard.classList.add(reminder.completed ? "completed" : "pending");
+                    reminderCard.innerHTML = `
+                        <div class="reminder-content">
+                            <strong>${reminder.type}</strong>
+                            <span class="details">${reminder.message}</span>
+                            <span class="details">Date: ${reminder.date}</span>
+                            <div class="reminder-actions">
+                                <button class="mark-complete" onclick="toggleComplete(${reminder.id})">${reminder.completed ? "Mark Pending" : "Mark Complete"}</button>
+                                <button class="dismiss" onclick="dismissReminder(${reminder.id})">Dismiss</button>
+                            </div>
+                        </div>
+                    `;
+                    remindersContainer.appendChild(reminderCard);
+                });
+            }
+
+            window.toggleComplete = function (id) {
+                const reminder = reminders.find(r => r.id === id);
+                if (reminder) {
+                    reminder.completed = !reminder.completed;
+                    const activeCategory = document.querySelector(".category-list li.active").dataset.category;
+                    renderReminders(activeCategory);
+                }
+            };
+
+            window.dismissReminder = function (id) {
+                const index = reminders.findIndex(r => r.id === id);
+                if (index !== -1) {
+                    reminders.splice(index, 1);
+                    const activeCategory = document.querySelector(".category-list li.active").dataset.category;
+                    updateTotals();
+                    renderReminders(activeCategory);
+                }
+            };
+
+            clearAllBtn.addEventListener("click", () => {
+                reminders.length = 0;
+                updateTotals();
+                renderReminders();
+            });
+
+            categoryItems.forEach((item) => {
+                item.addEventListener("click", function () {
+                    document.querySelector(".category-list li.active").classList.remove("active");
+                    this.classList.add("active");
+                    renderReminders(this.dataset.category);
+                });
+            });
+
+            darkModeToggle.addEventListener("click", () => {
+                document.body.classList.toggle("light-mode");
+                isLightMode = !isLightMode;
+                darkModeToggle.textContent = isLightMode ? "🌙" : "☀️";
+            });
+
+            addReminderBtn.addEventListener("click", () => {
+                reminderModal.style.display = "flex";
+            });
+
+            closeModalBtn.addEventListener("click", () => {
+                reminderModal.style.display = "none";
+                reminderForm.reset();
+            });
+
+            reminderForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const type = document.getElementById("reminderType").value.trim();
+                const message = document.getElementById("reminderMessage").value.trim();
+                const date = document.getElementById("reminderDate").value;
+                const category = document.getElementById("reminderCategory").value;
+
+                if (type && message && date) {
+                    const newReminder = {
+                        id: reminders.length + 1,
+                        type,
+                        message,
+                        date,
+                        category,
+                        completed: false
+                    };
+                    reminders.push(newReminder);
+                    updateTotals();
+                    renderReminders(document.querySelector(".category-list li.active").dataset.category);
+                    reminderModal.style.display = "none";
+                    reminderForm.reset();
+                } else {
+                    alert("Please fill in all required fields!");
+                }
+            });
+
+            updateTotals();
+            renderReminders();
+        });
+    </script>
+</body>
+</html>
